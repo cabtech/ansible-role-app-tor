@@ -1,0 +1,84 @@
+---
+# --------------------------------
+
+- name: 'update apt cache and grab some packages'
+  apt:
+    name: '{{tor_dependent_pkgs}}'
+    update_cache: true
+    state: present
+  become: true
+  tags:
+  - tor
+  - tor-pkg
+
+- name: 'add tor repo key'
+  apt_key:
+    keyserver: keys.gnupg.net
+    id: A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+    validate_certs: true
+    state: present
+  become: true
+  tags:
+  - tor
+  - tor-gpg
+
+- name: 'add tor repository to APT'
+  apt_repository:
+    repo: '{{item}} {{ct_codename}} main'
+    state: present
+  with_items:
+  - 'deb http://deb.torproject.org/torproject.org'
+  - 'deb-src http://deb.torproject.org/torproject.org'
+  become: true
+  register: reg_repo_list
+  tags:
+  - tor
+  - tor-repo
+
+- name: 'update apt cache and install tor'
+  apt:
+    name: 'tor'
+    state: present
+    update_cache: '{{reg_repo_list is changed}}'
+  become: true
+  tags:
+  - tor
+  - tor-pkg
+
+# --------------------------------
+
+- name: 'set up directory for DirPort page'
+  file:
+    state: directory
+    path: /var/www/html
+    owner: '{{tor_owner}}'
+    mode: 0755
+  become: true
+  tags:
+  - tor
+  - tor-cfg
+
+- name: 'transfer landing page over'
+  template:
+    dest: /var/www/html/index.html
+    src: index.html.j2
+    mode: '0644'
+    owner: '{{tor_owner}}'
+  tags:
+  - tor
+  - tor-cfg
+
+- name: 'build /etc/tor/torrc from template'
+  template:
+    dest: /etc/tor/torrc
+    src: torrc.j2
+    mode: '0644'
+    owner: root
+    group: root
+  become: true
+  tags:
+  - tor
+  - tor-cfg
+
+# --------------------------------
+...

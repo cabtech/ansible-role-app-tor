@@ -1,0 +1,6 @@
+---
+tor_dependent_pkgs:
+- apt-transport-https
+- ca-certificates
+- software-properties-common
+...

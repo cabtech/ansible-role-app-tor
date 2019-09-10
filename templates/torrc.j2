@@ -1,0 +1,21 @@
+# Ansible managed /etc/tor/torrc
+BandwidthRate {{tor_bandwidth}}
+{% if tor_contact is defined %}
+ContactInfo {{tor_contact}}
+{% endif %}
+Exitpolicy reject *:*
+Log notice file /var/log/tor/notices.log
+Nickname {{tor_name}}
+ORPort 443
+# enable the internal webserver to tell people this is a relay
+DirPort 80
+DirPortFrontPage /var/www/html/index.html
+{% if tor_fingerprints is defined and tor_fingerprints|length > 1 %}
+MyFamily {{ tor_fingerprints|join(',') }}
+{% endif %}
+{% if tor_ipv6_addr is defined %}
+# IPv6 settings
+Exitpolicy reject6 *:*
+ORPort [{{tor_ipv6_addr}}]:{{tor_ipv6_port}}
+{% endif %}
+# end
