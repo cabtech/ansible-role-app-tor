@@ -8,8 +8,8 @@
     state: present
   become: true
   tags:
-  - tor
-  - tor-pkg
+  - ct-tor
+  - ct-tor-pkg
 
 - name: 'add tor repo key'
   apt_key:
@@ -19,8 +19,8 @@
     state: present
   become: true
   tags:
-  - tor
-  - tor-gpg
+  - ct-tor
+  - ct-tor-gpg
 
 - name: 'add tor repository to APT'
   apt_repository:
@@ -32,8 +32,8 @@
   become: true
   register: reg_repo_list
   tags:
-  - tor
-  - tor-repo
+  - ct-tor
+  - ct-tor-repo
 
 - name: 'update apt cache and install tor'
   apt:
@@ -42,8 +42,8 @@
     update_cache: '{{reg_repo_list is changed}}'
   become: true
   tags:
-  - tor
-  - tor-pkg
+  - ct-tor
+  - ct-tor-pkg
 
 # --------------------------------
 
@@ -55,8 +55,8 @@
     mode: 0755
   become: true
   tags:
-  - tor
-  - tor-cfg
+  - ct-tor
+  - ct-tor-cfg
 
 - name: 'transfer landing page over'
   template:
@@ -65,8 +65,8 @@
     mode: '0644'
     owner: '{{tor_owner}}'
   tags:
-  - tor
-  - tor-cfg
+  - ct-tor
+  - ct-tor-cfg
 
 - name: 'build /etc/tor/torrc from template'
   template:
@@ -77,8 +77,8 @@
     group: root
   become: true
   tags:
-  - tor
-  - tor-cfg
+  - ct-tor
+  - ct-tor-cfg
 
 # --------------------------------
 ...
