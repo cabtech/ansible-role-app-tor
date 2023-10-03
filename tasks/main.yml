@@ -1,84 +1,70 @@
 ---
 # --------------------------------
 
-- name: 'update apt cache and grab some packages'
-  apt:
-    name: '{{tor_dependent_pkgs}}'
+- name: "Update package cache and grab some packages"
+  ansible.builtin.apt:
+    name: "{{ tor_dependent_pkgs }}"
     update_cache: true
     state: present
   become: true
-  tags:
-  - ct-tor
-  - ct-tor-pkg
+  tags: [ct-tor]
 
-- name: 'add tor repo key'
-  apt_key:
-    keyserver: keys.gnupg.net
+- name: "Add tor repo key"
+  ansible.builtin.apt_key:
     id: A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
-    validate_certs: true
+    keyserver: keys.gnupg.net
     state: present
+    validate_certs: true
   become: true
-  tags:
-  - ct-tor
-  - ct-tor-gpg
+  tags: [ct-tor]
 
-- name: 'add tor repository to APT'
-  apt_repository:
-    repo: '{{item}} {{ct_codename}} main'
+- name: "Add tor repository to APT"
+  ansible.builtin.apt_repository:
+    repo: "{{ item }} {{ ct_codename }} main"
     state: present
   with_items:
-  - 'deb http://deb.torproject.org/torproject.org'
-  - 'deb-src http://deb.torproject.org/torproject.org'
+  - "deb http://deb.torproject.org/torproject.org"
+  - "deb-src http://deb.torproject.org/torproject.org"
   become: true
   register: reg_repo_list
-  tags:
-  - ct-tor
-  - ct-tor-repo
+  tags: [ct-tor]
 
-- name: 'update apt cache and install tor'
-  apt:
-    name: 'tor'
+- name: "Update apt cache and install Tor"
+  ansible.builtin.apt:
+    name: "tor"
     state: present
-    update_cache: '{{reg_repo_list is changed}}'
+    update_cache: "{{ reg_repo_list is changed }}"
   become: true
-  tags:
-  - ct-tor
-  - ct-tor-pkg
+  tags: [ct-tor]
 
 # --------------------------------
 
-- name: 'set up directory for DirPort page'
-  file:
-    state: directory
-    path: /var/www/html
-    owner: '{{tor_owner}}'
+- name: "Set up directory for DirPort page"
+  ansible.builtin.file:
     mode: 0755
+    owner: "{{ tor_owner }}"
+    path: /var/www/html
+    state: directory
   become: true
-  tags:
-  - ct-tor
-  - ct-tor-cfg
+  tags: [ct-tor]
 
-- name: 'transfer landing page over'
-  template:
+- name: "Transfer landing page over"
+  ansible.builtin.template:
     dest: /var/www/html/index.html
+    mode: "0644"
+    owner: "{{ tor_owner }}"
     src: index.html.j2
-    mode: '0644'
-    owner: '{{tor_owner}}'
-  tags:
-  - ct-tor
-  - ct-tor-cfg
+  tags: [ct-tor]
 
-- name: 'build /etc/tor/torrc from template'
-  template:
+- name: "Render /etc/tor/torrc"
+  ansible.builtin.template:
     dest: /etc/tor/torrc
-    src: torrc.j2
-    mode: '0644'
-    owner: root
     group: root
+    mode: "0644"
+    owner: root
+    src: torrc.j2
   become: true
-  tags:
-  - ct-tor
-  - ct-tor-cfg
+  tags: [ct-tor]
 
 # --------------------------------
 ...
