@@ -1,13 +1,30 @@
 ---
 # --------------------------------
 
+- name: "Include variables wrapper"
+  ansible.builtin.include_tasks:
+    file: variables.yml
+  tags: ["ct-tor"]
+
+- name: "Disto/Family tasks (FF)"
+  ansible.builtin.include_tasks:
+    file: "{{ lookup('ansible.builtin.first_found', params) }}"
+  vars:
+    params:
+      files:
+      - "{{ ansible_facts['distribution'] }}-{{ ansible_facts['distribution_major_version'].split('.')[0] }}.yml"
+      - "{{ ansible_facts['distribution'] }}.yml"
+      - "{{ ansible_facts['os_family'] }}.yml"
+      - "default.yml"
+  tags: ["ct-tor"]
+
 - name: "Update package cache and grab some packages"
   ansible.builtin.apt:
     name: "{{ tor_dependent_pkgs }}"
     update_cache: true
     state: present
   become: true
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 - name: "Add tor repo key"
   ansible.builtin.apt_key:
@@ -16,7 +33,7 @@
     state: present
     validate_certs: true
   become: true
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 - name: "Add tor repository to APT"
   ansible.builtin.apt_repository:
@@ -27,7 +44,7 @@
   - "deb-src http://deb.torproject.org/torproject.org"
   become: true
   register: reg_repo_list
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 - name: "Update apt cache and install Tor"
   ansible.builtin.apt:
@@ -35,7 +52,7 @@
     state: present
     update_cache: "{{ reg_repo_list is changed }}"
   become: true
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 # --------------------------------
 
@@ -46,7 +63,7 @@
     path: /var/www/html
     state: directory
   become: true
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 - name: "Transfer landing page over"
   ansible.builtin.template:
@@ -54,7 +71,7 @@
     mode: "0644"
     owner: "{{ tor_owner }}"
     src: index.html.j2
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 - name: "Render /etc/tor/torrc"
   ansible.builtin.template:
@@ -64,7 +81,7 @@
     owner: root
     src: torrc.j2
   become: true
-  tags: [ct-tor]
+  tags: ["ct-tor"]
 
 # --------------------------------
 ...
